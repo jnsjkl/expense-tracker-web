@@ -102,7 +102,35 @@ export default function Dashboard({ user }: { user: any }) {
   }
 
   const handleResync = async () => {
-    alert('Manual sync not yet implemented in web version')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        alert('Please sign in first')
+        return
+      }
+
+      const response = await fetch(
+        'https://fatbrfrmwmmzjtoybyis.supabase.co/functions/v1/manual-sync',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      const result = await response.json()
+
+      if (response.ok) {
+        alert(`✅ Sync complete! Processed ${result.processed} transactions.`)
+        loadData() // Refresh the dashboard
+      } else {
+        alert(`❌ Sync failed: ${result.error}`)
+      }
+    } catch (error) {
+      alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   if (loading) {
