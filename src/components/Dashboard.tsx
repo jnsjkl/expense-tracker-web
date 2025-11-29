@@ -23,6 +23,32 @@ export default function Dashboard({ user }: { user: any }) {
             gmail_email: session.user.email
           }
         })
+
+        // Setup Gmail watch for push notifications
+        try {
+          const response = await fetch(
+            'https://gmail.googleapis.com/gmail/v1/users/me/watch',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${session.provider_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                topicName: 'projects/expense-tracker-447323/topics/gmail-notifications',
+                labelIds: ['INBOX'],
+              }),
+            }
+          )
+
+          if (response.ok) {
+            console.log('Gmail watch setup successful')
+          } else {
+            console.error('Gmail watch setup failed:', await response.text())
+          }
+        } catch (error) {
+          console.error('Error setting up Gmail watch:', error)
+        }
       }
       loadData()
     }
