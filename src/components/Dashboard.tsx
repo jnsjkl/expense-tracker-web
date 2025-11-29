@@ -35,7 +35,7 @@ export default function Dashboard({ user }: { user: any }) {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                topicName: 'projects/expense-tracker-447323/topics/gmail-notifications',
+                topicName: 'projects/expense-tracker-478916/topics/gmail-notifications',
                 labelIds: ['INBOX'],
               }),
             }
