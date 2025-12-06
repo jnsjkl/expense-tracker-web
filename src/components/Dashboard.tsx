@@ -87,6 +87,12 @@ export default function Dashboard({ user }: { user: any }) {
 
   // Real-time updates
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setDebugLogs(prev => [`Client Auth User: ${user?.id || 'NULL'}`, ...prev])
+    }
+    checkAuth()
+
     console.log('Setting up Realtime subscription...')
     const channel = supabase
       .channel('realtime transactions')
