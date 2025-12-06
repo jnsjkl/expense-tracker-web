@@ -91,10 +91,9 @@ export default function Dashboard({ user }: { user: any }) {
     const channel = supabase
       .channel('realtime transactions')
       .on('postgres_changes', {
-        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+        event: '*',
         schema: 'public',
-        table: 'transactions',
-        // Filter removed to rely on RLS policies
+        // table: 'transactions', // Commented out to test broad subscription
       }, (payload) => {
         console.log('Realtime event received:', payload)
         setDebugLogs(prev => [`Event: ${payload.eventType} - ${new Date().toISOString()}`, ...prev])
