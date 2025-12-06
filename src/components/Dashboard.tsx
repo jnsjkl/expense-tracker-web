@@ -89,15 +89,18 @@ export default function Dashboard({ user }: { user: any }) {
     const channel = supabase
       .channel('realtime transactions')
       .on('postgres_changes', {
-        event: 'INSERT',
+        event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
         schema: 'public',
         table: 'transactions',
-        filter: user ? `user_id=eq.${user.id}` : undefined
+        // Filter removed to rely on RLS policies
       }, (payload) => {
-        console.log('Realtime INSERT received:', payload)
-        const newTxn = payload.new as Transaction
-        setTransactions(prev => [newTxn, ...prev])
-        setTotalSpent(prev => prev + newTxn.amount)
+        console.log('Realtime event received:', payload)
+
+        if (payload.eventType === 'INSERT') {
+          const newTxn = payload.new as Transaction
+          setTransactions(prev => [newTxn, ...prev])
+          setTotalSpent(prev => prev + newTxn.amount)
+        }
       })
       .subscribe((status) => {
         console.log('Realtime subscription status:', status)
