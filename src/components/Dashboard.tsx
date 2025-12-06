@@ -10,7 +10,8 @@ export default function Dashboard({ user }: { user: any }) {
   const [totalSpent, setTotalSpent] = useState(0)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
+  const router = useRouter()
+  const [supabase] = useState(() => createClient())
 
   useEffect(() => {
     const init = async () => {
