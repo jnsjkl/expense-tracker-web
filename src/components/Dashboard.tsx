@@ -87,38 +87,49 @@ export default function Dashboard({ user }: { user: any }) {
 
   // Real-time updates
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setDebugLogs(prev => [`Client Auth User: ${user?.id || 'NULL'}`, ...prev])
+    let channel: any;
+
+    const setupRealtime = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session?.access_token) {
+        setDebugLogs(prev => [`Setting Realtime Auth Token...`, ...prev])
+        await supabase.realtime.setAuth(session.access_token)
+      } else {
+        setDebugLogs(prev => [`No session token found!`, ...prev])
+      }
+
+      setDebugLogs(prev => [`Client Auth User: ${session?.user?.id || 'NULL'}`, ...prev])
+
+      console.log('Setting up Realtime subscription...')
+      channel = supabase
+        .channel('realtime transactions')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          // table: 'transactions', 
+        }, (payload) => {
+          console.log('Realtime event received:', payload)
+          setDebugLogs(prev => [`Event: ${payload.eventType} - ${new Date().toISOString()}`, ...prev])
+
+          if (payload.eventType === 'INSERT') {
+            const newTxn = payload.new as Transaction
+            setTransactions(prev => [newTxn, ...prev])
+            setTotalSpent(prev => prev + newTxn.amount)
+          }
+        })
+        .subscribe((status) => {
+          console.log('Realtime subscription status:', status)
+          setRealtimeStatus(status)
+          setDebugLogs(prev => [`Status: ${status} - ${new Date().toISOString()}`, ...prev])
+        })
     }
-    checkAuth()
 
-    console.log('Setting up Realtime subscription...')
-    const channel = supabase
-      .channel('realtime transactions')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        // table: 'transactions', // Commented out to test broad subscription
-      }, (payload) => {
-        console.log('Realtime event received:', payload)
-        setDebugLogs(prev => [`Event: ${payload.eventType} - ${new Date().toISOString()}`, ...prev])
-
-        if (payload.eventType === 'INSERT') {
-          const newTxn = payload.new as Transaction
-          setTransactions(prev => [newTxn, ...prev])
-          setTotalSpent(prev => prev + newTxn.amount)
-        }
-      })
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status)
-        setRealtimeStatus(status)
-        setDebugLogs(prev => [`Status: ${status} - ${new Date().toISOString()}`, ...prev])
-      })
+    setupRealtime()
 
     return () => {
       console.log('Cleaning up Realtime subscription...')
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [supabase, user])
 
