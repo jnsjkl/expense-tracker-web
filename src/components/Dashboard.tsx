@@ -17,11 +17,17 @@ export default function Dashboard({ user }: { user: any }) {
       // Store Gmail token for server-side syncing if present in session
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.provider_token) {
+        const updates: any = {
+          gmail_token: session.provider_token,
+          gmail_email: session.user.email
+        }
+
+        if (session.provider_refresh_token) {
+          updates.gmail_refresh_token = session.provider_refresh_token
+        }
+
         await supabase.auth.updateUser({
-          data: {
-            gmail_token: session.provider_token,
-            gmail_email: session.user.email
-          }
+          data: updates
         })
 
         // Setup Gmail watch for push notifications
@@ -75,8 +81,11 @@ export default function Dashboard({ user }: { user: any }) {
     setLoading(false)
   }
 
+  const [realtimeStatus, setRealtimeStatus] = useState<string>('')
+
   // Real-time updates
   useEffect(() => {
+    console.log('Setting up Realtime subscription...')
     const channel = supabase
       .channel('realtime transactions')
       .on('postgres_changes', {
@@ -85,13 +94,18 @@ export default function Dashboard({ user }: { user: any }) {
         table: 'transactions',
         filter: user ? `user_id=eq.${user.id}` : undefined
       }, (payload) => {
+        console.log('Realtime INSERT received:', payload)
         const newTxn = payload.new as Transaction
         setTransactions(prev => [newTxn, ...prev])
         setTotalSpent(prev => prev + newTxn.amount)
       })
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status)
+        setRealtimeStatus(status)
+      })
 
     return () => {
+      console.log('Cleaning up Realtime subscription...')
       supabase.removeChannel(channel)
     }
   }, [supabase, user])
@@ -148,7 +162,15 @@ export default function Dashboard({ user }: { user: any }) {
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-gray-600">Hello, {user?.email?.split('@')[0] || 'User'}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-gray-600">Hello, {user?.email?.split('@')[0] || 'User'}</p>
+              <span className={`px-2 py-0.5 text-xs rounded-full ${realtimeStatus === 'SUBSCRIBED' ? 'bg-green-100 text-green-700' :
+                realtimeStatus === 'CLOSED' ? 'bg-gray-100 text-gray-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                {realtimeStatus || 'CONNECTING'}
+              </span>
+            </div>
           </div>
           <div className="flex gap-2">
             <button

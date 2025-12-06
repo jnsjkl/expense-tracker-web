@@ -54,6 +54,11 @@ export const parseEmail = (subject: string, body: string, date: Date): ParsedTra
         return parseHSBC(text, date);
     }
 
+    // Try PayLah! parser
+    if (text.includes('PayLah') || subject.includes('PayLah') || text.includes('PayNow') || subject.includes('PayNow')) {
+        return parsePayLah(text, date);
+    }
+
     return null;
 };
 
@@ -150,6 +155,30 @@ function parseHSBC(text: string, date: Date): ParsedTransaction | null {
             merchant: merchantMatch ? merchantMatch[1].trim() : 'Unknown Merchant',
             date: date,
             bank: 'HSBC',
+            type: 'debit',
+            currency: 'SGD',
+        };
+    }
+    return null;
+}
+
+function parsePayLah(text: string, date: Date): ParsedTransaction | null {
+    // Example:
+    // Amount: SGD5.60
+    // To: ZHEN XIANG WEI PTE. LTD.
+
+    const amountRegex = /Amount:\s*SGD\s?(\d+\.?\d{2})/i;
+    const merchantRegex = /To:\s+(.+?)(?:\r|\n|$)/i;
+
+    const amountMatch = text.match(amountRegex);
+    const merchantMatch = text.match(merchantRegex);
+
+    if (amountMatch) {
+        return {
+            amount: parseFloat(amountMatch[1]),
+            merchant: merchantMatch ? merchantMatch[1].trim() : 'Unknown Merchant',
+            date: date,
+            bank: 'DBS', // PayLah is DBS
             type: 'debit',
             currency: 'SGD',
         };
