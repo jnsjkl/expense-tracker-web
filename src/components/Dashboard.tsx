@@ -188,6 +188,25 @@ export default function Dashboard({ user }: { user: any }) {
             >
               Sign Out
             </button>
+            <button
+              onClick={async () => {
+                const dummy = {
+                  amount: 1.00,
+                  merchant: 'TEST REALTIME',
+                  date: new Date().toISOString(),
+                  bank: 'TEST',
+                  type: 'debit',
+                  currency: 'SGD',
+                  user_id: user.id,
+                  raw_email_id: `test-${Date.now()}`
+                }
+                const { error } = await supabase.from('transactions').insert(dummy)
+                if (error) alert('Insert failed: ' + error.message)
+              }}
+              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+            >
+              Test Realtime
+            </button>
           </div>
         </div>
 
