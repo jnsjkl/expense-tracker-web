@@ -83,7 +83,6 @@ export default function Dashboard({ user }: { user: any }) {
   }
 
   const [realtimeStatus, setRealtimeStatus] = useState<string>('')
-  const [debugLogs, setDebugLogs] = useState<string[]>([])
 
   // Real-time updates
   useEffect(() => {
@@ -93,13 +92,8 @@ export default function Dashboard({ user }: { user: any }) {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (session?.access_token) {
-        setDebugLogs(prev => [`Setting Realtime Auth Token...`, ...prev])
         await supabase.realtime.setAuth(session.access_token)
-      } else {
-        setDebugLogs(prev => [`No session token found!`, ...prev])
       }
-
-      setDebugLogs(prev => [`Client Auth User: ${session?.user?.id || 'NULL'}`, ...prev])
 
       console.log('Setting up Realtime subscription...')
       channel = supabase
@@ -110,7 +104,6 @@ export default function Dashboard({ user }: { user: any }) {
           // table: 'transactions', 
         }, (payload) => {
           console.log('Realtime event received:', payload)
-          setDebugLogs(prev => [`Event: ${payload.eventType} - ${new Date().toISOString()}`, ...prev])
 
           if (payload.eventType === 'INSERT') {
             const newTxn = payload.new as Transaction
@@ -121,7 +114,6 @@ export default function Dashboard({ user }: { user: any }) {
         .subscribe((status) => {
           console.log('Realtime subscription status:', status)
           setRealtimeStatus(status)
-          setDebugLogs(prev => [`Status: ${status} - ${new Date().toISOString()}`, ...prev])
         })
     }
 
@@ -208,35 +200,7 @@ export default function Dashboard({ user }: { user: any }) {
             >
               Sign Out
             </button>
-            <button
-              onClick={async () => {
-                const dummy = {
-                  amount: 1.00,
-                  merchant: 'TEST REALTIME',
-                  date: new Date().toISOString(),
-                  bank: 'TEST',
-                  type: 'debit',
-                  currency: 'SGD',
-                  user_id: user.id,
-                  raw_email_id: `test-${Date.now()}`
-                }
-                const { error } = await supabase.from('transactions').insert(dummy)
-                if (error) alert('Insert failed: ' + error.message)
-              }}
-              className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
-            >
-              Test Realtime
-            </button>
           </div>
-        </div>
-
-        {/* Debug Log */}
-        <div className="bg-gray-900 text-green-400 p-4 rounded-lg mb-8 font-mono text-xs overflow-auto max-h-40">
-          <p className="text-gray-500 border-b border-gray-700 pb-2 mb-2">Debug Log (Take a screenshot of this)</p>
-          {debugLogs.map((log, i) => (
-            <div key={i} className="mb-1">{log}</div>
-          ))}
-          {debugLogs.length === 0 && <div className="text-gray-600">Waiting for events...</div>}
         </div>
 
         {/* Total Spent Card */}
