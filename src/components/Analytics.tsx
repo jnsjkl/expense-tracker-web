@@ -57,6 +57,7 @@ export default function Analytics({ user }: { user: any }) {
             .eq('user_id', user.id)
             .gte('date', startDate)
             .lte('date', endDate)
+            .gte('date', '2025-12-08T00:00:00.000Z') // Apply Start Fresh filter
             .not('merchant', 'ilike', '[TEST]%') // Exclude test transactions
             .order('date', { ascending: false })
 
