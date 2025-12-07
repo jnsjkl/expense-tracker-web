@@ -108,7 +108,7 @@ export default function Analytics({ user }: { user: any }) {
                             <Bar
                                 dataKey="total"
                                 radius={[4, 4, 0, 0]}
-                                onClick={(data) => setSelectedMonth(data.month)}
+                                onClick={(data: any) => setSelectedMonth(data.month)}
                                 cursor="pointer"
                             >
                                 {monthlyData.map((entry, index) => (
