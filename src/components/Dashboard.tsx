@@ -116,7 +116,11 @@ export default function Dashboard({ user }: { user: any }) {
           if (payload.eventType === 'INSERT') {
             const newTxn = payload.new as Transaction
             setTransactions(prev => [newTxn, ...prev])
-            setTotalSpent(prev => prev + newTxn.amount)
+
+            // Only add to total if it's NOT a test transaction
+            if (!newTxn.merchant.startsWith('[TEST]')) {
+              setTotalSpent(prev => prev + newTxn.amount)
+            }
           }
         })
         .subscribe((status) => {
