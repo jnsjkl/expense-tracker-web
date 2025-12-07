@@ -5,7 +5,10 @@ import { createClient } from '@/lib/supabase/client'
 import { Transaction } from '@/types'
 import { useRouter } from 'next/navigation'
 
+import Analytics from './Analytics'
+
 export default function Dashboard({ user }: { user: any }) {
+  const [activeTab, setActiveTab] = useState<'recent' | 'analytics'>('recent')
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [totalSpent, setTotalSpent] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -65,7 +68,6 @@ export default function Dashboard({ user }: { user: any }) {
   const loadData = async () => {
     setLoading(true)
 
-    // Start Fresh: Only show transactions after this date
     // Start Fresh: Only show transactions after this date
     const START_DATE = '2025-12-08T00:00:00.000Z' // Reset to start from tomorrow
 
@@ -216,45 +218,73 @@ export default function Dashboard({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* Total Spent Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <p className="text-gray-600 mb-2">Total Spent (Recent)</p>
-          <p className="text-4xl font-bold text-gray-900">
-            SGD {totalSpent.toFixed(2)}
-          </p>
+        {/* Tabs */}
+        <div className="flex space-x-1 bg-gray-200/50 p-1 rounded-xl mb-8 w-fit">
+          <button
+            onClick={() => setActiveTab('recent')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'recent'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+              }`}
+          >
+            Recent
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'analytics'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+              }`}
+          >
+            Analytics
+          </button>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Recent Transactions
-          </h2>
-
-          {transactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No transactions yet. Connect your Gmail to start syncing!
+        {activeTab === 'recent' ? (
+          <>
+            {/* Total Spent Card */}
+            <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+              <p className="text-gray-600 mb-2">Total Spent (Recent)</p>
+              <p className="text-4xl font-bold text-gray-900">
+                SGD {totalSpent.toFixed(2)}
+              </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {transactions.map((txn) => (
-                <div
-                  key={txn.id}
-                  className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
-                >
-                  <div>
-                    <p className="font-semibold text-gray-800">{txn.merchant}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(txn.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <p className="font-bold text-red-600">
-                    - ${txn.amount.toFixed(2)}
-                  </p>
+
+            {/* Recent Transactions */}
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                Recent Transactions
+              </h2>
+
+              {transactions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No transactions yet. Connect your Gmail to start syncing!
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-3">
+                  {transactions.map((txn) => (
+                    <div
+                      key={txn.id}
+                      className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                    >
+                      <div>
+                        <p className="font-semibold text-gray-800">{txn.merchant}</p>
+                        <p className="text-sm text-gray-500">
+                          {new Date(txn.date).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <p className="font-bold text-red-600">
+                        - ${txn.amount.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <Analytics user={user} />
+        )}
       </div>
     </div>
   )
