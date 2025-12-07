@@ -66,7 +66,8 @@ export default function Dashboard({ user }: { user: any }) {
     setLoading(true)
 
     // Start Fresh: Only show transactions after this date
-    const START_DATE = '2025-12-07T00:00:00.000Z' // Adjust time as needed
+    // Start Fresh: Only show transactions after this date
+    const START_DATE = '2025-12-08T00:00:00.000Z' // Reset to start from tomorrow
 
     // Fetch recent transactions
     const { data: txns } = await supabase
