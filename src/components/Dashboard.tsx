@@ -81,7 +81,7 @@ export default function Dashboard({ user }: { user: any }) {
       setTransactions(txns)
       // Exclude [TEST] transactions from total
       const total = txns.reduce((sum, t) => {
-        if (t.merchant.startsWith('[TEST]')) return sum
+        if (t.merchant.toUpperCase().startsWith('[TEST]')) return sum
         return sum + t.amount
       }, 0)
       setTotalSpent(total)
@@ -118,7 +118,7 @@ export default function Dashboard({ user }: { user: any }) {
             setTransactions(prev => [newTxn, ...prev])
 
             // Only add to total if it's NOT a test transaction
-            if (!newTxn.merchant.startsWith('[TEST]')) {
+            if (!newTxn.merchant.toUpperCase().startsWith('[TEST]')) {
               setTotalSpent(prev => prev + newTxn.amount)
             }
           }
