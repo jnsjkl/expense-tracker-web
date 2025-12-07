@@ -65,17 +65,25 @@ export default function Dashboard({ user }: { user: any }) {
   const loadData = async () => {
     setLoading(true)
 
+    // Start Fresh: Only show transactions after this date
+    const START_DATE = '2025-12-07T00:00:00.000Z' // Adjust time as needed
+
     // Fetch recent transactions
     const { data: txns } = await supabase
       .from('transactions')
       .select('*')
       .eq('user_id', user.id)
+      .gte('date', START_DATE) // Filter by start date
       .order('date', { ascending: false })
-      .limit(20)
+      .limit(50)
 
     if (txns) {
       setTransactions(txns)
-      const total = txns.reduce((sum, t) => sum + t.amount, 0)
+      // Exclude [TEST] transactions from total
+      const total = txns.reduce((sum, t) => {
+        if (t.merchant.startsWith('[TEST]')) return sum
+        return sum + t.amount
+      }, 0)
       setTotalSpent(total)
     }
 
