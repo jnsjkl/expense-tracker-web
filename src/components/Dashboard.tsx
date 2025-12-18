@@ -167,8 +167,12 @@ export default function Dashboard({ user }: { user: any }) {
       const result = await response.json()
 
       if (response.ok) {
-        alert(`✅ Sync complete! Processed ${result.processed} transactions.`)
-        loadData() // Refresh the dashboard
+        if (result.processed === 0 && result.debug_log) {
+          alert(`⚠️ Sync finished but found 0 transactions.\n\nDebug Log:\n${result.debug_log.join('\n')}`)
+        } else {
+          alert(`✅ Sync complete! Processed ${result.processed} transactions.`)
+          loadData() // Refresh the dashboard
+        }
       } else {
         alert(`❌ Sync failed: ${result.error}`)
       }
